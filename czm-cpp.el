@@ -5,7 +5,7 @@
 ;; Author: Paul D. Nelson <nelson.paul.david@gmail.com>
 ;; Version: 0.1
 ;; URL: https://github.com/ultronozm/czm-cpp.el
-;; Package-Requires: ((emacs "29.1") (cmake-build "1.0"))
+;; Package-Requires: ((emacs "29.1") cmake-build)
 ;; Keywords: c, tools, convenience
 
 ;; This program is free software; you can redistribute it and/or modify
