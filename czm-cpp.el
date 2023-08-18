@@ -3,7 +3,7 @@
 ;; Copyright (C) 2023  Paul D. Nelson
 
 ;; Author: Paul D. Nelson <nelson.paul.david@gmail.com>
-;; Version: 0.1
+;; Version: 0.0
 ;; URL: https://github.com/ultronozm/czm-cpp.el
 ;; Package-Requires: ((emacs "29.1") (cmake-build "1.0"))
 ;; Keywords: c, tools, convenience
