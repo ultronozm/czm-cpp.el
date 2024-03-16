@@ -65,6 +65,7 @@
   (call-interactively 'lsp-rename)
   (save-some-buffers t))
 
+;;;###autoload
 (defun czm-cpp-new-project-relative (new-directory-name)
   (interactive "sNew directory name (relative to current directory): ")
   (let* ((new-directory-absolute (expand-file-name new-directory-name))
@@ -86,6 +87,7 @@
     (cmake-build-clear-cache-and-configure)
     (cmake-build-set-config 'all)))
 
+;;;###autoload
 (defun czm-cpp-new-project (new-directory-name)
   (interactive "sNew directory name: ")
   (let
@@ -109,6 +111,7 @@
     ;; (cmake-build-current)
     ))  
 
+;;;###autoload
 (defun czm-cpp-scratch ()
   (interactive)
   (let ((directory (format-time-string "~/code/scratch/%Y-%m-%d-%H%M%S")))
