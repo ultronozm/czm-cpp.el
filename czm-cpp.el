@@ -5,7 +5,7 @@
 ;; Author: Paul D. Nelson <nelson.paul.david@gmail.com>
 ;; Version: 0.0
 ;; URL: https://github.com/ultronozm/czm-cpp.el
-;; Package-Requires: ((emacs "29.1") (cmake-build "1.0"))
+;; Package-Requires: ((emacs "29.1") (cmake-build "1.0") (s "1.13.1"))
 ;; Keywords: c, tools, convenience
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -29,104 +29,61 @@
 
 (require 'cmake-build)
 
-(defcustom czm-cpp-template-directory "~/code/scratch/template/"
+;; initialize to this directory followed by template
+(defcustom czm-cpp-template-directory
+  (let ((dir (if load-file-name
+                 (file-name-directory load-file-name)
+               default-directory)))
+    (expand-file-name "template" dir))
   "Directory containing the C++ project template."
   :type 'directory
   :group 'czm-cpp)
 
 ;;;###autoload
-(defun czm-cpp-new-project (new-directory-name)
-  "Create a new C++ project in the specified directory."
+(defun czm-cpp-new-project (dir)
+  "Create a new C++ project in directory DIR."
   (interactive "sNew directory name: ")
   (let* ((template-directory (file-name-as-directory czm-cpp-template-directory))
-         (template-src-directory (file-name-as-directory
-                                  (expand-file-name "src" template-directory)))
-         (new-directory (file-name-as-directory new-directory-name))
-         (new-src-directory (file-name-as-directory
-                             (expand-file-name "src" new-directory)))
-         (files-to-copy '(".clang-format" "CMakeLists.txt" ".cmake-build.el" ".project" ".gitignore"))
-         (src-files-to-copy '("CMakeLists.txt" "main.cpp")))
+         (new-directory (file-name-as-directory dir)))
     (make-directory new-directory t)
-    (make-directory new-src-directory t)
-    (dolist (file files-to-copy)
-      (copy-file (expand-file-name file template-directory) new-directory))
-    (dolist (file src-files-to-copy)
-      (copy-file (expand-file-name file template-src-directory) new-src-directory))
-    (magit-init new-directory)
-    (find-file (expand-file-name "main.cpp" new-src-directory))
+    (dolist (file (directory-files template-directory))
+      (unless (member file '("." ".."))
+        (let ((source (concat template-directory file))
+              (destination (concat new-directory file)))
+          (if (file-directory-p source)
+              (copy-directory source destination t t)
+            (copy-file source destination t t)))))
+    (find-file
+     (expand-file-name "main.cpp"
+                       (file-name-as-directory
+                        (expand-file-name "src" new-directory))))
     (cmake-build-clear-cache-and-configure)
     (cmake-build-set-config 'all)))
+
+(defcustom czm-cpp-scratch-directory
+  (expand-file-name "~/scratch/cpp")
+  "Directory to create new C++ projects in."
+  :type 'directory
+  :group 'czm-cpp)
 
 ;;;###autoload
 (defun czm-cpp-new-project-scratch ()
   "Create a new C++ project in the scratch directory with a timestamped name."
   (interactive)
-  (let ((directory (format-time-string "~/code/scratch/%Y-%m-%d-%H%M%S")))
+  (let ((directory
+         (expand-file-name
+          (format-time-string "%Y-%m-%d-%H%M%S")
+          (file-name-as-directory czm-cpp-scratch-directory))))
     (setq directory (read-string "Directory: " directory))
     (czm-cpp-new-project directory)))
 
 ;;;###autoload
-(defun czm-cpp-new-project-relative (new-directory-name)
-  "Create a new C++ project in the specified directory."
+(defun czm-cpp-new-project-relative (dir)
+  "Create a new C++ project in directory DIR."
   (interactive "sNew directory name (relative to current directory): ")
-  (czm-cpp-new-project (expand-file-name new-directory-name)))
+  (czm-cpp-new-project (expand-file-name dir)))
 
-
-;; ;;;###autoload
-;; (defun czm-cpp-new-project-relative (new-directory-name)
-;;   (interactive "sNew directory name (relative to current directory): ")
-;;   (let* ((new-directory-absolute (expand-file-name new-directory-name))
-;;          (template-directory-name "~/code/scratch/template/")
-;;          (template-src-directory-name "~/code/scratch/template/src/")
-;;          (new-src-directory-name (concat new-directory-absolute "/src/"))
-;;          (files-to-copy '(".clang-format" "CMakeLists.txt" ".cmake-build.el" ".project" ".gitignore"))
-;;          (src-files-to-copy '("CMakeLists.txt" "main.cpp")))
-;;     (unless (file-exists-p new-directory-absolute)
-;;       (make-directory new-directory-absolute t))
-;;     (unless (file-exists-p new-src-directory-name)
-;;       (make-directory new-src-directory-name t))
-;;     (dolist (file files-to-copy)
-;;       (copy-file (concat template-directory-name file) new-directory-absolute))
-;;     (dolist (file src-files-to-copy)
-;;       (copy-file (concat template-src-directory-name file) new-src-directory-name))
-;;     (magit-init new-directory-absolute)
-;;     (find-file (concat new-src-directory-name "main.cpp"))
-;;     (cmake-build-clear-cache-and-configure)
-;;     (cmake-build-set-config 'all)))
-
-;; ;;;###autoload
-;; (defun czm-cpp-new-project (new-directory-name)
-;;   (interactive "sNew directory name: ")
-;;   (let
-;;       ((template-directory-name (format-time-string "~/code/scratch/template/"))
-;;        (template-src-directory-name (format-time-string "~/code/scratch/template/src/"))
-;;        (new-src-directory-name (concat new-directory-name "src/"))
-;;        (files-to-copy '(".clang-format" "CMakeLists.txt" ".cmake-build.el" ".project" ".gitignore"))
-;;        (src-files-to-copy '("CMakeLists.txt" "main.cpp")))
-;;     (make-directory new-directory-name)
-;;     (make-directory new-src-directory-name)
-;;     (dolist (file files-to-copy)
-;;       (copy-file (concat template-directory-name file) new-directory-name))
-;;     (dolist (file src-files-to-copy)
-;;       (copy-file (concat template-src-directory-name file) new-src-directory-name))
-;;     ;; TODO: replace the following with something using eglot?
-;;     ;; (lsp-workspace-folders-add new-directory-name)
-;;     (magit-init new-directory-name)
-;;     (find-file (concat new-src-directory-name "main.cpp"))
-;;     (cmake-build-clear-cache-and-configure)
-;;     (cmake-build-set-config 'all)
-;;     ;; (cmake-build-current)
-;;     ))
-
-;; ;;;###autoload
-;; (defun czm-cpp-scratch ()
-;;   "Create a new cpp project, by default in the scratch directory."
-;;   (interactive)
-;;   (let ((directory (format-time-string "~/code/scratch/%Y-%m-%d-%H%M%S")))
-;;     (setq directory (read-string "Directory: " directory))
-;;     (czm-cpp-new-project
-;;      (concat directory "/"))))
-
+;;;###autoload
 (defun czm-cpp-init-header ()
   "Insert a header guard at the top of the file."
   (interactive)
@@ -137,10 +94,8 @@
 	          (concat
 	           (project-name (project-current))
 	           "_"
-	           (file-name-nondirectory (buffer-file-name)))
-	          )))
-	       (notice nil)
-	       )
+	           (file-name-nondirectory (buffer-file-name))))))
+	       (notice nil))
     (goto-char (point-min))
     (if notice (progn (insert notice) (newline)))
     (insert (concat "#ifndef " guard "\n" "#define " guard "\n\n"))
@@ -148,6 +103,10 @@
     (insert (concat "#endif // " guard "\n"))
     (forward-line -2)))
 
+(require 's)
+(require 'eglot)
+
+;;;###autoload
 (defun czm-cpp-make-snake-case ()
   "Convert the symbol at point to snake_case."
   (interactive)
