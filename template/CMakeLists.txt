@@ -1,0 +1,9 @@
+cmake_minimum_required(VERSION 3.10)
+project(test)
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+set(CMAKE_DISABLE_SOURCE_CHANGES ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS "-g -Wall -O2 -Wextra")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+add_subdirectory(src)
+
