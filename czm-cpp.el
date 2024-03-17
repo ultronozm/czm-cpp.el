@@ -23,13 +23,12 @@
 
 ;;; Commentary:
 
-;; cpp convenience, e.g., for project management.
+;; cpp convenience functions, e.g., for project management.
 
 ;;; Code:
 
 (require 'cmake-build)
 
-;; initialize to this directory followed by template
 (defcustom czm-cpp-template-directory
   (let ((dir (if load-file-name
                  (file-name-directory load-file-name)
